@@ -14,10 +14,10 @@
     <Trend color="red" title="Saving" :amount="4000" :last-amount="4100" :loading="false" />
   </section>
   <section>
-    <Transition />
-    <Transition />
-    <Transition />
-    <Transition />
+    <Transaction />
+    <Transaction />
+    <Transaction />
+    <Transaction />
   </section>
 </template>
 
