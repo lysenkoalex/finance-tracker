@@ -22,7 +22,7 @@
       </div>
     </div>
     <div>
-      <TransactionModal v-model="isOpen"/>
+      <TransactionModal v-model="isOpen" @saved="refreshTransactions()" />
       <UButton icon="i-heroicons-plus-circle" color="white" variant="solid" label="Add" @click="isOpen = true" />
     </div>
   </section>
@@ -75,6 +75,7 @@
       const { data, error } = await supabase
         .from('transactions')
         .select()
+        .order('created_at', { ascending: false })
 
         if(error) return []
 
@@ -103,6 +104,14 @@
       grouped[date].push(transaction)
     }
 
+    // const sortedKeys = Object.keys(grouped).sort().reverse()
+    // const sortedGrouped = {}
+
+    // for (const key of sortedKeys) {
+    //   sortedGrouped[key] = grouped[key]
+    // }
+
+    // return sortedGrouped
     return grouped
   })
 
