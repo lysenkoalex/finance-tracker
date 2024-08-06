@@ -15,6 +15,7 @@
             <div>
                 <UDropdown :items="items" :popper="{ placement: 'bottom-start' }">
                     <UButton color="white" variant="ghost" trailing-icon="i-heroicons-ellipsis-horizontal" :loading="isLoading" />
+                    <TransactionModal v-model="isOpen" :transaction="transaction" @saved="emit('edited')" />
                 </UDropdown>
             </div>
         </div>
@@ -26,7 +27,7 @@
         transaction: Object
     })
 
-    const emit = defineEmits(['deleted'])
+    const emit = defineEmits(['deleted', 'edited'])
 
     const isIncome = computed(() => props.transaction.type === 'Income')
 
@@ -41,8 +42,10 @@
     const { currency } = useCurrency(props.transaction.amount)
 
     const isLoading = ref(false)
-    const toast = useToast()
+    const { toastSuccess, toastError } = useAppToast()
     const supabase = useSupabaseClient()
+
+    const isOpen = ref(false)
 
     const deleteTransaction = async () => {
         isLoading.value = true
@@ -51,17 +54,13 @@
             await supabase.from('transactions')
                 .delete()
                 .eq('id', props.transaction.id)
-            toast.add({
-                title: 'Transaction deleted',
-                icon: 'i-heroicons-check-circle',
-                color: 'green'
+            toastSuccess({
+                title: 'Transaction deleted'
             })
             emit('deleted', props.transaction.id)
         } catch (error) {
-            toast.add({
-                title: 'Transaction deleted',
-                icon: 'i-heroicons-exclamation-circle',
-                color: 'red'
+            toastError({
+                title: 'Transaction was not deleted'
             })
         } finally {
             isLoading.value = false
@@ -73,7 +72,7 @@
             {
                 label: 'Edit',
                 icon: 'i-heroicons-pencil-square-20-solid',
-                click: () => console.log('Edit') 
+                click: () => isOpen.value = true
             },
             {
                 label: 'Delete',

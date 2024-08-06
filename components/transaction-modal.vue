@@ -2,12 +2,12 @@
     <UModal v-model="isOpen">
         <UCard>
             <template #header>
-                Add Transaction
+                {{ isEditing ? 'Edit' : 'Add' }} Transaction
             </template>
             
             <UForm :state="state" :schema="schema" ref="form" @submit="save">
                 <UFormGroup label="Transaction Type" :required="true" name="type" class="mb-4">
-                    <USelect placeholder="Select the transaction type" :options="types" v-model="state.type"/>
+                    <USelect :disabled="isEditing"laceholder="Select the transaction type" :options="types" v-model="state.type"/>
                 </UFormGroup>
 
                 <UFormGroup label="Amount" :required="true" name="amount" class="mb-4">
@@ -37,8 +37,14 @@ import { categories, types } from '~/constants'
 import { z } from 'zod'
 
 const props = defineProps({
-    modelValue: Boolean
+    modelValue: Boolean,
+    transaction: {
+        type: Object,
+        required: false
+    }
 })
+
+const isEditing = computed(() => !!props.transaction)
 
 const emit = defineEmits(['update:modelValue', 'saved'])
 
@@ -70,7 +76,7 @@ const schema = z.intersection(
 const form = ref()
 const isLoading = ref(false)
 const supabase = useSupabaseClient()
-const toast = useToast()
+const { toastSuccess, toastError } = useAppToast()
 
 const save = async () => {
     if(form.value.errors.length) return
@@ -78,12 +84,14 @@ const save = async () => {
     isLoading.value = true
     try {
         const { error } = await supabase.from('transactions')
-            .upsert({ ...state.value })
+            .upsert({ 
+                ...state.value,
+                id: props.transaction?.id
+            })
 
         if(!error) {
-            toast.add({
-                'title': 'Transaction saved',
-                'icon': 'i-heroicons-check-circle'
+            toastSuccess({
+                title: 'Transaction saved'
             })
             isOpen.value = false
             emit('saved')
@@ -92,18 +100,22 @@ const save = async () => {
 
         throw error
     } catch (e) {
-        toast.add({
-            'title': 'Transaction not saved',
-            'description': e.message,
-            'icon': 'i-heroicons-exclamation-circle',
-            'color': 'red'
+        toastError({
+            title: 'Transaction not saved',
+            description: e.message
         })
     } finally {
         isLoading.value = false
     }
 }
 
-const initialState = {
+const initialState = isEditing.value ? {
+    type: props.transaction.type,
+    amount: props.transaction.amount,
+    created_at: props.transaction.created_at.split('T')[0],
+    description: props.transaction.description,
+    category: props.transaction.category 
+} : {
     type: undefined,
     amount: 0,
     created_at: undefined,
@@ -111,9 +123,7 @@ const initialState = {
     category: undefined
 }
 
-const state = ref({
-    ...initialState
-})
+const state = ref({ ...initialState }  )
 
 const resetForm = () => {
     Object.assign(state.value, initialState)
