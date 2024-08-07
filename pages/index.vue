@@ -10,8 +10,8 @@
   <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 sm:gap-16 mb-10">
     <Trend color="green" title="Income" :amount="incomeTotal" :last-amount="prevIncomeTotal" :loading="pending" />
     <Trend color="red" title="Expense" :amount="expenseTotal" :last-amount="prevExpenseTotal" :loading="pending" />
-    <Trend color="green" title="Investments" :amount="4000" :last-amount="3000" :loading="pending" />
-    <Trend color="red" title="Saving" :amount="4000" :last-amount="4100" :loading="pending" />
+    <Trend color="green" title="Investments" :amount="investTotal" :last-amount="prevInvestTotal" :loading="pending" />
+    <Trend color="red" title="Saving" :amount="savingTotal" :last-amount="prevSavingTotal" :loading="pending" />
   </section>
 
   <section class="flex justify-between mb-10">
@@ -51,6 +51,8 @@
     expenseCount,
     incomeTotal,
     expenseTotal,
+    investTotal,
+    savingTotal,
     grouped: {
       byDate
     }
@@ -59,6 +61,8 @@
   const { refresh: refreshPrevious, transactions: {
     incomeTotal: prevIncomeTotal,
     expenseTotal: prevExpenseTotal,
+    investTotal: prevInvestTotal,
+    savingTotal: prevSavingTotal,
   } } = useFetchTransactions(previous)
 
   await Promise.all([refresh(), refreshPrevious()])
